@@ -124,6 +124,7 @@ void treeDump (const tree_t* tree, const char* file_name, const char* func_name,
 
         return;
     }
+    
     FILE* log_file = creatDotFile(tree, count_log_files, deleted_node);
 
     DEBUG_PRINT(COLOR_BCYAN "count_log_files right before creatLogPicture = %d\n" COLOR_RESET, count_log_files);

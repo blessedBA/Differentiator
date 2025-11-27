@@ -1,3 +1,9 @@
 *.sh
 *.out
 *.dSYM
+latexDump/latexDump.aux
+latexDump/latexDump.fdb_latexmk
+latexDump/latexDump.fls
+latexDump/latexDump.log
+latexDump/latexDump.synctex.gz
+

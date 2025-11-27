@@ -201,7 +201,7 @@ void nodeDestroy (tree_t* tree, node_t* node, int rank)
     node->right          = nullptr;
 
     //free(node->type.name_type);
-    free(node->value.oper.name);
+    if (node->type.code_type == OPERATION) free(node->value.oper.name);
     free(node);
 
     return;
