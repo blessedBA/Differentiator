@@ -1,6 +1,7 @@
 #include "colors.h"
 #include "debugUtils.h"
 #include "graphDebugDiff.h"
+#include "fileFuncs.h"
 #include "safetyTreeDiff.h"
 #include "tree.h"
 
@@ -21,7 +22,7 @@ static void printImage        (FILE* log_file_html, int count_log_files);
 static void printErrorsInLog  (FILE* log_file_html, int global_code_error);
 
 static int count_log_files = 0;
-extern FILE* log_file_html;
+extern FileStorage file_storage;
 
 void setError (error_t error)
 {
@@ -63,7 +64,7 @@ isError_t treeVerify (const tree_t* tree, const char* file_name, const char* fun
         errors[HAVE_NO_ERRORS].isError      = false;
         errors[ERR_FAIL_INIT_TREE].isError  = true;
         global_code_error |= code_ERR_FAIL_INIT_TREE;
-        treeDump(tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
+        treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
         return HAVE_ERROR;
     }
     if (tree->size < 0)
@@ -72,13 +73,13 @@ isError_t treeVerify (const tree_t* tree, const char* file_name, const char* fun
         errors[HAVE_NO_ERRORS].isError = false;
         errors[ERR_INV_SIZE].isError   = true;
         global_code_error |= code_ERR_INV_SIZE;
-        treeDump(tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
+        treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
         return HAVE_ERROR;
     }
 
     if (errors[HAVE_NO_ERRORS].isError == false)
     {
-        treeDump(tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
+        treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, global_code_error, count_log_files, nullptr, "ERROR %d", global_code_error);
         return HAVE_ERROR;
     }
 
@@ -94,7 +95,7 @@ isError_t treeVerify (tree_t* tree, const char* file_name, const char* func_name
 
 #endif
 
-void treeDump (const tree_t* tree, const char* file_name, const char* func_name, int line,
+void treeDump (FILE* log_file_html, const tree_t* tree, const char* file_name, const char* func_name, int line,
                int global_code_error, int count_log_files, node_t* deleted_node, const char* reason, ...)
 {
     // FILE* log_file_html = fopen("graphDumpDiff.html", "a");
@@ -124,7 +125,7 @@ void treeDump (const tree_t* tree, const char* file_name, const char* func_name,
 
         return;
     }
-    
+
     FILE* log_file = creatDotFile(tree, count_log_files, deleted_node);
 
     DEBUG_PRINT(COLOR_BCYAN "count_log_files right before creatLogPicture = %d\n" COLOR_RESET, count_log_files);

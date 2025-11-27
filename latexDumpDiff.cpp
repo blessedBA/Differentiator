@@ -8,25 +8,20 @@
 #include <string.h>
 #include <stdarg.h>
 
-static void printStartLatexDump (FILE* log_file_latex, func_data* f_data, const char* reason);
-static void printMathExpression (FILE* log_file_latex, const tree_t* tree, node_t* node);
-static void closeLatexDump      (FILE* log_file_latex);
-static void addExpToLatex       (FILE* log_file_latex, const tree_t* tree, const char* title);
+static void printStartLatexDump (FILE* latex_file, func_data* f_data, const char* reason);
+static void addExpToLatex       (FILE* latex_file, const tree_t* tree, const char* title);
+static void printMathExpression (FILE* latex_file, const tree_t* tree, node_t* node);
+static void printNodeToLatex    (FILE* latex_file, const tree_t* tree, node_t* node);
+static void closeLatexDump      (FILE* latex_file);
 
-void latexDump (const tree_t* tree, const char* file_name, const char* func_name, int line,
+void latexDump (FILE* latex_file, const tree_t* tree, const char* file_name, const char* func_name, int line,
                 int count_log_files, const char* reason, ...)
 {
     TREE_VERIFY;
+    assert(latex_file);
     assert(file_name);
     assert(func_name);
     assert(reason);
-
-    FILE* log_file_latex = fopen("latexDump/latexDump.tex", "w"); // TODO rework to argc/argv
-    if (log_file_latex == nullptr)
-    {
-        fprintf(stderr, COLOR_BRED "ERROR: failed to open graphDump.html\n" COLOR_RESET);
-        return;
-    }
 
     func_data f_data = {file_name, func_name, line};
 
@@ -36,14 +31,15 @@ void latexDump (const tree_t* tree, const char* file_name, const char* func_name
     vsnprintf(formatted_reason, sizeof(formatted_reason), reason, args);
     va_end(args);
 
-    printStartLatexDump(log_file_latex, &f_data, formatted_reason);
+    printStartLatexDump(latex_file, &f_data, formatted_reason);
 
-    addExpToLatex(log_file_latex, tree, "exp1");
+    addExpToLatex(latex_file, tree, "exp1");
 
-    fprintf(log_file_latex, "\n");
-    closeLatexDump(log_file_latex);
+    fprintf(latex_file, "\n");
+    closeLatexDump(latex_file);
 
     TREE_VERIFY;
+    assert(latex_file);
     assert(file_name);
     assert(func_name);
     assert(reason);
@@ -51,12 +47,12 @@ void latexDump (const tree_t* tree, const char* file_name, const char* func_name
     return;
 }
 
-void printStartLatexDump(FILE* log_file_latex, func_data* f_data, const char* reason)
+void printStartLatexDump(FILE* latex_file, func_data* f_data, const char* reason)
 {
-    assert(log_file_latex);
+    assert(latex_file);
     assert(f_data);
 
-    fprintf(log_file_latex, "\\documentclass{article}\n"
+    fprintf(latex_file, "\\documentclass{article}\n"
                             "\\usepackage{graphicx}\n"
                             "\\usepackage{multirow}\n"
                             "\\usepackage{amsmath}\n"
@@ -71,108 +67,122 @@ void printStartLatexDump(FILE* log_file_latex, func_data* f_data, const char* re
                             "\tright=1.3cm\n"
                             "]{geometry}\n"                );
 
-    fprintf(log_file_latex, "\\title{DUMP \\ Differentiator. Called from %s %s:%d}\n", f_data->func_name,
+    fprintf(latex_file, "\\title{DUMP \\ Differentiator. Called from %s %s:%d}\n", f_data->func_name,
                                                                                       f_data->file_name,
                                                                                       f_data->line      );
-    fprintf(log_file_latex, "\\author{REASON: %s}\n", reason);
-    fprintf(log_file_latex, "\\begin{document}\n");
+    fprintf(latex_file, "\\author{REASON: %s}\n", reason);
+    fprintf(latex_file, "\\begin{document}\n");
 
 
-    assert(log_file_latex);
+    assert(latex_file);
     assert(f_data);
 
     return;
 }
 
-void printMathExpression (FILE* log_file_latex, const tree_t* tree, node_t* node)
+void printMathExpression (FILE* latex_file, const tree_t* tree, node_t* node)
 {
     TREE_VERIFY;
-    assert(log_file_latex);
+    assert(latex_file);
 
     if (node == nullptr) return;
 
-    if (node->value.oper.code != DIVISION)
+    if (node->value.oper.code != DIVISION) printMathExpression(latex_file, tree, node->left );
+
+    printNodeToLatex(latex_file, tree, node);
+
+    if (node->value.oper.code != DIVISION) printMathExpression(latex_file, tree, node->right);
+
+    TREE_VERIFY;
+    assert(latex_file);
+
+    return;
+}
+
+void closeLatexDump(FILE* latex_file)
+{
+    assert(latex_file);
+
+    if (latex_file)
     {
-        printMathExpression(log_file_latex, tree, node->left );
-        //printMathExpression(log_file_latex, tree, node->right);
+        fprintf(latex_file, "\\end{document}\n");
+        printf(COLOR_BGREEN "LaTeX is done\n" COLOR_RESET);
     }
+
+    assert(latex_file);
+
+    return;
+}
+
+void addExpToLatex (FILE* latex_file, const tree_t* tree, const char* title)
+{
+    TREE_VERIFY;
+    assert(latex_file);
+    assert(title);
+
+    fprintf(latex_file, "\\subsection*{%s}\n", title);
+    fprintf(latex_file, "\\[\n");
+
+    printMathExpression(latex_file, tree, tree->root);
+
+    fprintf(latex_file, "\n\\]\n\n");
+
+    TREE_VERIFY;
+    assert(latex_file);
+    assert(title);
+
+    return;
+}
+
+void printNodeToLatex (FILE* latex_file, const tree_t* tree, node_t* node)
+{
+    TREE_VERIFY;
+    assert(node);
+    assert(latex_file);
 
     switch (node->type.code_type)
     {
         case NUMBER:
-            fprintf(log_file_latex, "%lf", node->value.number);
+            fprintf(latex_file, "%lf", node->value.number);
             break;
         case VARIABLE:
             printf(COLOR_BMAGENTA "VARIABLE ACTIVATED\n" COLOR_RESET);
-            fprintf(log_file_latex, "%c", tree->variables[node->value.index].name);
+            fprintf(latex_file, "%c", tree->variables[node->value.index].name);
             break;
         case OPERATION:
             if (strlen(node->value.oper.name) != LENGTH_BASIC_OPER)
             {
-                fprintf(log_file_latex, "%s(", node->value.oper.name);
+                fprintf(latex_file, "%s(", node->value.oper.name);
             }
             else
             {
                 if (node->value.oper.code == DIVISION)
                 {
-                    fprintf(log_file_latex, "\\frac{");
+                    fprintf(latex_file, "\\frac{");
 
-                    if (node->left) printMathExpression(log_file_latex, tree, node->left);
+                    if (node->left) printMathExpression(latex_file, tree, node->left);
                     // TODO add processing error when there is no left
-                    fprintf(log_file_latex, "}{");
+                    fprintf(latex_file, "}{");
 
-                    if (node->left) printMathExpression(log_file_latex, tree, node->left);
+                    if (node->left) printMathExpression(latex_file, tree, node->left);
                     // TODO add processing error when there is no right
-                    fprintf(log_file_latex, "}");
+                    fprintf(latex_file, "}");
                 }
-                if ((node->type.code_type         == DIVISION || node->type.code_type         == MULTIPLICATION) &&
-                    (node->right->type.code_type  == ADDITION || node->right->type.code_type  == SUBTRACTION)       )
+                if ((node->value.oper.code         == DIVISION || node->value.oper.code         == MULTIPLICATION) &&
+                    (node->right->value.oper.code  == ADDITION || node->right->value.oper.code  == SUBTRACTION)       )
                 {
-                    fprintf(log_file_latex, "(");
+                    fprintf(latex_file, "(");
                 }
-                fprintf(log_file_latex, "%s", node->value.oper.name);
+                fprintf(latex_file, "%s", node->value.oper.name);
             }
 
-            if (strlen(node->value.oper.name) != LENGTH_BASIC_OPER) fprintf(log_file_latex, ")");
+            if (strlen(node->value.oper.name) != LENGTH_BASIC_OPER) fprintf(latex_file, ")");
             break;
     }
 
-    if (node->value.oper.code != DIVISION) printMathExpression(log_file_latex, tree, node->right);
-
     TREE_VERIFY;
-    assert(log_file_latex);
-
-    return;
-}
-
-void closeLatexDump(FILE* log_file_latex)
-{
-    if (log_file_latex)
-    {
-        fprintf(log_file_latex, "\\end{document}\n");
-        if (fclose(log_file_latex) != 0) fprintf(stderr, COLOR_BRED "ERROR: failed to close latex file\n" COLOR_RESET);
-        printf(COLOR_BGREEN "LaTeX is done\n" COLOR_RESET);
-    }
-
-    return;
-}
-
-void addExpToLatex (FILE* log_file_latex, const tree_t* tree, const char* title)
-{
-    TREE_VERIFY;
-    assert(log_file_latex);
-    assert(title);
-
-    fprintf(log_file_latex, "\\subsection*{%s}\n", title);
-    fprintf(log_file_latex, "\\[\n");
-
-    printMathExpression(log_file_latex, tree,  tree->root);
-
-    fprintf(log_file_latex, "\n\\]\n\n");
-
-    TREE_VERIFY;
-    assert(log_file_latex);
-    assert(title);
+    assert(node);
+    assert(latex_file);
 
     return;
 }

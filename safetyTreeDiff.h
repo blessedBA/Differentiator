@@ -4,6 +4,8 @@
 #include "errors.h"
 #include "tree.h"
 
+#include <stdio.h>
+#include <stdarg.h>
 
 typedef struct
 {
@@ -15,7 +17,7 @@ typedef struct
 void setError (error_t error);
 void printErrors();
 isError_t treeVerify (const tree_t* tree, const char* file_name, const char* func_name, int line);
-void treeDump (const tree_t* tree, const char* file_name, const char* func_name, int line,
+void treeDump (FILE* log_file_html, const tree_t* tree, const char* file_name, const char* func_name, int line,
                int global_code_error, int count_log_files, node_t* deleted_node, const char* reason, ...);
 
 

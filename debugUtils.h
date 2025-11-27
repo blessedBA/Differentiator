@@ -4,6 +4,8 @@
 #include "colors.h"
 #include "tree.h"
 
+#include <stdio.h>
+
 #ifndef NDEBUG
     #define DEBUG_PRINT(...)              printf(__VA_ARGS__)
     #define DEBUG_PRINT_VALUE(node, type) printValue(node, type)
@@ -16,6 +18,8 @@
     #define LOCATION                      ((void)0)
     #define DEBUG_PRINT_LOCATION          ((void)0)
 #endif
+
+#define     LOC_CALL __FILE__, __func__, __LINE__
 
 void printValue (node_t* node, type_t type);
 

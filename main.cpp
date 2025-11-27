@@ -1,3 +1,4 @@
+#include "argParserDiff.h"
 #include "colors.h"
 #include "debugUtils.h"
 #include "fileFuncs.h"
@@ -10,18 +11,27 @@
 
 #include <stdio.h>
 
-FILE* log_file_html = nullptr;
+#define HAVE_ARG true
 
-int main () // TODO add parsing of files/flags
+FileStorage file_storage = {};
+
+int main (const int argc, char* argv[]) // TODO add parsing of files/flags
 {
+
+    FlagStorage storage = {};
+
+    const ConsoleFlag list_flags[] =
+        { {"--input",     "-i",  inputFileEnable,     HAVE_ARG },
+          {"--dumpHtml",  "-dH", dumpHtmlFileEnable,  HAVE_ARG },
+          {"--dumpLatex", "-dL", dumpLatexFileEnable, HAVE_ARG }  };
+
+    size_t count_flags  = sizeof(list_flags) / sizeof(list_flags[0]);
+    getFlags(argc, argv, list_flags, count_flags, &storage);
+
+    if (openFiles(&storage, &file_storage)) return -1;
+
     int global_code_error = 0;
     int count_dumps       = 0;
-
-    //log_file_html = getFilename(DUMP_FILE); //NOTE теперь пользователь указывает название дамп файла,
-                                              // но из за смены логики - во всех функциях теперь не требуется передавать
-                                              // указатель на записываемый файл - просто убрать аргументы?
-    log_file_html = fopen(GRAPH_DUMP, "w");   // temporary solution
-    DEBUG_PRINT("LOG_FILE_HTML [%p]\n\n", log_file_html);
 
     tree_t* tree = treeInit();
     if (tree == nullptr)
@@ -31,7 +41,7 @@ int main () // TODO add parsing of files/flags
     }
 
     ++count_dumps;
-    treeDump(tree, __FILE__, __func__, __LINE__, global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
+    treeDump(file_storage.log_file_html.pointer, tree, __FILE__, __func__, __LINE__, global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
 
     tree->root->type.code_type =  OPERATION;
     tree->root->type.name_type = "OPERATION";
@@ -85,15 +95,20 @@ int main () // TODO add parsing of files/flags
 //
 //     startWriting(tree);
 
-    startReading(tree);
+    startReading(tree, &file_storage);
 
     ++count_dumps;
-    treeDump (tree, __FILE__, __func__, __LINE__, global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
-    ++count_dumps;
-    latexDump(tree, __FILE__, __func__, __LINE__, count_dumps, "LaTeX DUMP %d", count_dumps);
+    treeDump (file_storage.log_file_html.pointer, tree, LOC_CALL,
+                global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
 
-    fclose(log_file_html);
+    ++count_dumps;
+    latexDump(file_storage.latex_file.pointer, tree, LOC_CALL,
+                count_dumps, "LaTeX DUMP %d", count_dumps);
+
+    closeFiles(&file_storage);
     treeDestroy(tree);
+
+// ----------------------math Parser-----------------------------
 
     const char* math_expression = "10*(30+20*10)+13$";
     int result = 10 * (30 + 20 * 10) + 13;

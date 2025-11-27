@@ -25,6 +25,32 @@ static bool    checkVariable      (char* buffer, size_t* position);
 
 extern operation_t operations[NUMBER_OPERATIONS];
 
+void closeFiles (FileStorage* file_storage)
+{
+    assert(file_storage);
+
+    if (file_storage->input_file.pointer)
+    {
+        fclose(file_storage->input_file.pointer);
+        file_storage->input_file.name = nullptr;
+    }
+    if (file_storage->log_file_html.pointer)
+    {
+        fclose(file_storage->log_file_html.pointer);
+        file_storage->log_file_html.name = nullptr;
+    }
+    if (file_storage->latex_file.pointer)
+    {
+        fclose(file_storage->latex_file.pointer);
+        file_storage->latex_file.name = nullptr;
+    }
+
+    assert(file_storage);
+
+    return;
+}
+
+
 bool clearFile (const char* file_name)
 {
     assert(file_name);
@@ -88,7 +114,7 @@ void startWriting(tree_t* tree)
     usleep(1e5);
     printf(".\n");
 
-    FILE* output_file = fopen(TEXT_DUMP, "w");
+    FILE* output_file = fopen(STANDARD_FILE_FOR_READ, "w");
     assert(output_file);
 
     writeInFile(tree, tree->root, output_file);
@@ -138,7 +164,7 @@ void writeInFile (tree_t* tree, node_t* node, FILE* output_file)
     return;
 }
 
-node_t* startReading(tree_t* tree)
+node_t* startReading(tree_t* tree, FileStorage* file_storage)
 {
     TREE_VERIFY;
 
@@ -148,9 +174,7 @@ node_t* startReading(tree_t* tree)
     usleep(5e5);
     printf(".\n\n");
 
-    const char* filename = TEXT_DUMP;
-
-    char* buffer = creatBuffer(filename);
+    char* buffer = creatBuffer(file_storage->input_file.name);
     //printf("%s", buffer);
     size_t position = 0;
 
