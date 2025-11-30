@@ -3,6 +3,7 @@
 
 #include "Files.h"
 #include "tree.h"
+#include "argParserDiff.h"
 
 #include <stdio.h>
 
@@ -20,6 +21,7 @@ node_t* startReading (tree_t* tree, FileStorage* file_storage);
 bool    clearFile    (const char* file_name);
 FILE*   getFilename  (class_file_t class_file);
 
+int openFiles   (FlagStorage* storage, FileStorage* file_storage);
 void closeFiles (FileStorage* file_storage);
 
 #endif // FILE_FUNCS_H

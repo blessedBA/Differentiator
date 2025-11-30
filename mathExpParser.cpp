@@ -1,4 +1,5 @@
 #include "colors.h"
+#include "errors.h"
 #include "mathExpParser.h"
 #include "tree.h"
 

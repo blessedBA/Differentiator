@@ -1,6 +1,7 @@
 #include "argParserDiff.h"
 #include "colors.h"
 #include "debugUtils.h"
+#include "errors.h"
 #include "fileFuncs.h"
 #include "Files.h"
 #include "latexDumpDiff.h"
@@ -15,8 +16,9 @@
 
 FileStorage file_storage = {};
 
-int main (const int argc, char* argv[]) // TODO add parsing of files/flags
+int main (const int argc, char* argv[])
 {
+    initErrorLog(&global_error_log);
 
     FlagStorage storage = {};
 
@@ -30,18 +32,23 @@ int main (const int argc, char* argv[]) // TODO add parsing of files/flags
 
     if (openFiles(&storage, &file_storage)) return -1;
 
-    int global_code_error = 0;
+    FILE* log_file = nullptr;
+    setErrorLogFile(&global_error_log, &log_file);
+
     int count_dumps       = 0;
 
     tree_t* tree = treeInit();
     if (tree == nullptr)
     {
-        fprintf(stderr, COLOR_BRED "ERROR: failed to creat tree\n" COLOR_RESET);
+        LOG_ERROR(&global_error_log, ERR_FAIL_INIT_TREE, code_ERR_FAIL_INIT_TREE, "failed to init tree for differentiator");
+        ADD_CONTEXT(&global_error_log);
         return 1;
     }
 
     ++count_dumps;
-    treeDump(file_storage.log_file_html.pointer, tree, __FILE__, __func__, __LINE__, global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
+    FILE* log_file_html = file_storage.log_file_html.pointer;
+    FILE* latex_file    = file_storage.latex_file.pointer;
+    treeDump(log_file_html, tree, LOC_CALL, nullptr, "DUMP %d", count_dumps);
 
     tree->root->type.code_type =  OPERATION;
     tree->root->type.name_type = "OPERATION";
@@ -97,15 +104,12 @@ int main (const int argc, char* argv[]) // TODO add parsing of files/flags
 
     startReading(tree, &file_storage);
 
-    ++count_dumps;
-    treeDump (file_storage.log_file_html.pointer, tree, LOC_CALL,
-                global_code_error, count_dumps, nullptr, "DUMP %d", count_dumps);
+    treeDump (log_file_html, tree, LOC_CALL, nullptr, "DUMP %d", ++count_dumps);
 
-    ++count_dumps;
-    latexDump(file_storage.latex_file.pointer, tree, LOC_CALL,
-                count_dumps, "LaTeX DUMP %d", count_dumps);
+    latexDump(latex_file, tree, LOC_CALL, &count_dumps, "LaTeX DUMP %d", count_dumps + 1);
 
     closeFiles(&file_storage);
+    freeErrorLog(&global_error_log);
     treeDestroy(tree);
 
 // ----------------------math Parser-----------------------------
@@ -115,6 +119,7 @@ int main (const int argc, char* argv[]) // TODO add parsing of files/flags
     size_t index = 0;
     printf("result of your math expression is %d " COLOR_BYELLOW "expected %d\n" COLOR_RESET,
             getRuleG(math_expression, &index), result);
+
 
     return 0;
 }

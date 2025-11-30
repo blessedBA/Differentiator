@@ -23,7 +23,57 @@ static void    skipSpacesInBuffer (char* buffer, size_t* position);
 static bool    checkNil           (char* buffer, size_t* position);
 static bool    checkVariable      (char* buffer, size_t* position);
 
+static bool openConcreteFile (FILE** ptr_to_file, char* file_name, const char* standard_name_file,
+                              char** str_to_save_file_name, const char* mode_opening);
+
 extern operation_t operations[NUMBER_OPERATIONS];
+
+int openFiles(FlagStorage* storage, FileStorage* file_storage)
+{
+    assert(storage);
+    assert(file_storage);
+
+    const char* r = "r";
+    const char* w = "w";
+
+    if (openConcreteFile(&file_storage->input_file.pointer,    storage->input_file_name,      STANDARD_FILE_FOR_READ,
+                         &file_storage->input_file.name,    r)) return -1;
+
+    if (openConcreteFile(&file_storage->log_file_html.pointer, storage->dump_html_file_name,  STANDARD_FILE_FOR_HTML_DUMP,
+                         &file_storage->log_file_html.name, w)) return -1;
+
+    if (openConcreteFile(&file_storage->latex_file.pointer,    storage->dump_latex_file_name, STANDARD_FILE_FOR_LATEX_DUMP,
+                         &file_storage->latex_file.name,    w)) return -1;
+
+    assert(storage);
+    assert(file_storage);
+
+    return 0;
+}
+
+bool openConcreteFile (FILE** ptr_to_file, char* file_name, const char* standard_name_file,
+                       char** str_to_save_file_name, const char* mode_opening)
+{
+    if (file_name)
+    {
+        *ptr_to_file = fopen(file_name, mode_opening);
+        *str_to_save_file_name = file_name;
+    }
+    else
+    {
+        *ptr_to_file = fopen(standard_name_file, mode_opening);
+        *str_to_save_file_name = (char*)standard_name_file;
+    }
+    if (!(*ptr_to_file))
+    {
+        fprintf(stderr, COLOR_BRED "ERROR: failed to open file for latex dump!\n" COLOR_RESET);
+        return true;
+    }
+
+    assert(ptr_to_file);
+
+    return false;
+}
 
 void closeFiles (FileStorage* file_storage)
 {
@@ -50,7 +100,6 @@ void closeFiles (FileStorage* file_storage)
     return;
 }
 
-
 bool clearFile (const char* file_name)
 {
     assert(file_name);
@@ -67,7 +116,7 @@ bool clearFile (const char* file_name)
 FILE* getFilename (class_file_t class_file)
 {
     char file_name[MAX_LENGTH_FILENAME] = "";
-    char* mode_opening;
+    char mode_opening[2] = "";
 
     switch (class_file)
     {
@@ -75,13 +124,13 @@ FILE* getFilename (class_file_t class_file)
             printf("which dump file do you want to use?\n");
             do scanf("%s", file_name);
             while (strlen(file_name) == MAX_LENGTH_FILENAME && printf("too big name for file, try another one\n"));
-            mode_opening = "w";
+            mode_opening[0] = 'w';
             break;
         case READING_FILE:
             printf("which file do you want to read from?\n");
             do scanf("%s", file_name);
             while (strlen(file_name) == MAX_LENGTH_FILENAME && printf("too big name for file, try another one\n"));
-            mode_opening = "r";
+            mode_opening[0] = 'r';
             break;
         default:
             fprintf(stderr, COLOR_BRED "\nERROR: invalid class of file in %s %s:%d\n" COLOR_RESET, __func__, __FILE__, __LINE__);

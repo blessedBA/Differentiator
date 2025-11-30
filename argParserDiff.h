@@ -5,12 +5,12 @@
 
 #include <string.h>
 
-struct FlagStorage
+typedef struct FlagStorage
 {
     char* input_file_name      = nullptr;
     char* dump_html_file_name  = nullptr;
     char* dump_latex_file_name = nullptr;
-};
+} FlagStorage;
 
 typedef void (*FlagFunc)(FlagStorage* storage, char* argv);
 
@@ -30,7 +30,5 @@ void getFlags(const int argc, char* argv[],
 void inputFileEnable     (FlagStorage* storage, char* arg);
 void dumpHtmlFileEnable  (FlagStorage* storage, char* arg);
 void dumpLatexFileEnable (FlagStorage* storage, char* arg);
-
-int openFiles(const FlagStorage* storage, FileStorage* file_storage);
 
 #endif // ARG_PARSER_DIFF_H

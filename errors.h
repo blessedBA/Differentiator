@@ -1,6 +1,12 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+#include <time.h>
+
+#include <stdio.h>
+
+#define LOG_ERROR(log, code, byte_code_error, desc) addError((log), (code), (byte_code_error), (desc))
+#define ADD_CONTEXT(log) addErrorContext((log), __FILE__, __func__, __LINE__)
 
 typedef enum isError_t
 {
@@ -24,12 +30,52 @@ typedef enum code_error_t
     code_ERR_INV_NAME_VAR   = 1 << 3
 } code_error_t;
 
-typedef struct storageListErrors
+// typedef struct storageErrors
+// {
+//     error_t error;
+//     code_error_t code_error;
+//     const char* description;
+//     bool isError;
+// } storageErrors;
+
+typedef struct errorContext
 {
-    error_t error;
-    code_error_t code_error;
-    const char* description;
-    bool isError;
-} storageListErrors;
+    const char* file;
+    const char* function;
+    int line;
+    time_t timestamp;
+    char time_date[32];
+} errorContext;
+
+typedef struct storageErrors
+{
+    error_t code;
+    code_error_t byte_code_error;
+    char description[256];
+    bool has_error;
+
+    errorContext* contexts;
+    size_t ctx_size;
+    size_t ctx_capacity;
+} storageErrors;
+
+typedef struct errorLog
+{
+    storageErrors* entries;
+    unsigned long long global_mask_error;
+    FILE* log_file;
+    const char* log_filename;
+    size_t size;
+    size_t capacity;
+} errorLog;
+
+storageErrors* addError (errorLog* log, error_t code, code_error_t byte_code_error, const char* desc);
+void initErrorLog (errorLog* log);
+void setErrorLogFile (errorLog* log, FILE** log_file, const char* file_name = nullptr);
+void addErrorContext (errorLog* global_error_log, const char* file_name, const char* func_name, int line);
+void printErrors (const errorLog* log);
+void freeErrorLog (errorLog* log);
+
+extern errorLog global_error_log;
 
 #endif // ERRORS_H

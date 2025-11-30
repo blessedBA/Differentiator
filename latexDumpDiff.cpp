@@ -1,4 +1,5 @@
 #include "debugUtils.h"
+#include "errors.h"
 #include "latexDumpDiff.h"
 #include "tree.h"
 #include "safetyTreeDiff.h"
@@ -15,15 +16,18 @@ static void printNodeToLatex    (FILE* latex_file, const tree_t* tree, node_t* n
 static void closeLatexDump      (FILE* latex_file);
 
 void latexDump (FILE* latex_file, const tree_t* tree, const char* file_name, const char* func_name, int line,
-                int count_log_files, const char* reason, ...)
+                int* count_log_files, const char* reason, ...)
 {
     TREE_VERIFY;
     assert(latex_file);
     assert(file_name);
     assert(func_name);
     assert(reason);
+    assert(count_log_files);
 
     func_data f_data = {file_name, func_name, line};
+
+    ++(*count_log_files);
 
     char formatted_reason[200] = {};
     va_list args = NULL;
@@ -32,6 +36,8 @@ void latexDump (FILE* latex_file, const tree_t* tree, const char* file_name, con
     va_end(args);
 
     printStartLatexDump(latex_file, &f_data, formatted_reason);
+
+    fprintf(latex_file, "latex dump %d\n", *count_log_files);
 
     addExpToLatex(latex_file, tree, "exp1");
 
@@ -43,6 +49,7 @@ void latexDump (FILE* latex_file, const tree_t* tree, const char* file_name, con
     assert(file_name);
     assert(func_name);
     assert(reason);
+    assert(count_log_files);
 
     return;
 }
@@ -142,6 +149,9 @@ void printNodeToLatex (FILE* latex_file, const tree_t* tree, node_t* node)
 
     switch (node->type.code_type)
     {
+        case TYPE_NULL:
+            fprintf(latex_file, "null_type");
+            break;
         case NUMBER:
             fprintf(latex_file, "%lf", node->value.number);
             break;
@@ -178,6 +188,8 @@ void printNodeToLatex (FILE* latex_file, const tree_t* tree, node_t* node)
 
             if (strlen(node->value.oper.name) != LENGTH_BASIC_OPER) fprintf(latex_file, ")");
             break;
+        default:
+            fprintf(stderr, COLOR_BRED "ERROR: invalid type of node in %s/%s:%d\n" COLOR_RESET, __func__, __FILE__, __LINE__);
     }
 
     TREE_VERIFY;

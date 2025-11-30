@@ -12,6 +12,8 @@ void printValue (node_t* node, type_t type)
     printf("value [%p]\n", &node->value);
     switch (type)
     {
+        case TYPE_NULL:
+            printf("value = null_value\n");
         case OPERATION:
             printf("value = %s\n", node->value.oper.name);
             break;

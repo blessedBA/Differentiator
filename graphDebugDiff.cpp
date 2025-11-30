@@ -1,4 +1,5 @@
 #include "colors.h"
+#include "errors.h"
 #include "debugUtils.h"
 #include "differentiator.h"
 #include "graphDebugDiff.h"
@@ -9,12 +10,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_SIZE_OF_VALUE_PRINT 30
+
 static FILE* openLogFile (int count_log_files);
 static void creatStartGraph (FILE* log_file);
 static void creatMainNodes (FILE* log_file, const tree_t* tree, node_t* node, node_t* deleted_node);
 static void creatRibs (FILE* log_file, const tree_t* tree, node_t* node);
 static bool checkDeleted (node_t* node, node_t* deleted_node);
 static bool IsNodeInSubtree (node_t* root, node_t* node);
+static bool creatValue(const tree_t* tree, node_t* node, char* value_string);
+static bool fillValueString(char* value_string, size_t size_value_string, const char* reason, ...);
 
 FILE* creatDotFile (const tree_t* tree, int count_log_files, node_t* deleted_node)
 {
@@ -111,32 +116,13 @@ void creatMainNodes (FILE* log_file, const tree_t* tree, node_t* node, node_t* d
         default:
             fprintf(stderr, COLOR_BRED "ERROR: invalid type of node [%p] in %s %s:%d\n", node, __func__, __FILE__, __LINE__);
     }
-    //char* general_value = getValue(node); // TODO do this function, remove copypaste (switch case below)
-    switch (node->type.code_type)
-    {
-        case TYPE_NULL:
-            fprintf(log_file,
-                "node%p [shape=Mrecord; style = filled; fillcolor = \"%s\"; color = \"%s\"; label = \"{node [%p] | type = %s | value = null_value | parent = %p | { left = %p | right = %p } }\"]\n",
-                node, fill_color, color, node, node->type.name_type, node->parent, node->left, node->right);
-            break;
-        case OPERATION:
-            fprintf(log_file,
-                "node%p [shape=Mrecord; style = filled; fillcolor = \"%s\"; color = \"%s\"; label = \"{node [%p] | type = %s | value = %s | parent = %p | { left = %p | right = %p } }\"]\n",
-                node, fill_color, color, node, node->type.name_type, node->value.oper.name, node->parent, node->left, node->right);
-            break;
-        case VARIABLE:
-            fprintf(log_file,
-                "node%p [shape=Mrecord; style = filled; fillcolor = \"%s\"; color = \"%s\"; label = \"{node [%p] | type = %s | value = %d | parent = %p | { left = %p | right = %p } }\"]\n",
-                node, fill_color, color, node, node->type.name_type, node->value.index, node->parent, node->left, node->right);
-            break;
-        case NUMBER:
-            fprintf(log_file,
-                "node%p [shape=Mrecord; style = filled; fillcolor = \"%s\"; color = \"%s\"; label = \"{node [%p] | type = %s | value = %lf | parent = %p | { left = %p | right = %p } }\"]\n",
-                node, fill_color, color, node, node->type.name_type, node->value.number, node->parent, node->left, node->right);
-            break;
-        default:
-            5 + 5 == 5;
-    }
+    char value_print[MAX_SIZE_OF_VALUE_PRINT] = "";
+    creatValue(tree, node, value_print); // TODO add processing errors
+
+    fprintf(log_file,
+                "node%p [shape=Mrecord; style = filled; fillcolor = \"%s\"; color = \"%s\";"
+                "label = \"{node [%p] | type = %s | %s | parent = %p | { left = %p | right = %p } }\"]\n",
+                node, fill_color, color, node, node->type.name_type, value_print, node->parent, node->left, node->right);
 
     if (node->left  == nullptr && node->right == nullptr) return;
 
@@ -202,3 +188,56 @@ bool IsNodeInSubtree (node_t* root, node_t* node)
 
     return IsNodeInSubtree(root->left, node) || IsNodeInSubtree(root->right, node);
 }
+
+bool creatValue (const tree_t* tree, node_t* node, char* value_string)
+{
+    TREE_VERIFY;
+    assert(node);
+    assert(value_string);
+
+    switch (node->type.code_type)
+    {
+        case TYPE_NULL:
+            if (fillValueString(value_string, sizeof("value = %s"), "null_value")) return true;
+            break;
+        case OPERATION:
+            if (fillValueString(value_string, sizeof("value = %s"), "value = %s", node->value.oper.name)) return true;
+            break;
+        case VARIABLE:
+            if (fillValueString(value_string, sizeof("value = %d ('%c')"), "value = %d ('%c')", node->value.index, tree->variables[node->value.index].name)) return true;
+            break;
+        case NUMBER:
+            if (fillValueString(value_string, sizeof("value = %lf   "), "value = %lf", node->value.number)) return true; // TODO limit length of number, how to rework?
+            break;
+        default:
+            fprintf(stderr, COLOR_BRED "FATAL ERROR: invalid type of node in %s/%s:%d\n" COLOR_RESET, __func__, __FILE__, __LINE__);
+            return true;
+    }
+
+    TREE_VERIFY;
+    assert(node);
+    assert(value_string);
+
+    return false;
+}
+
+bool fillValueString (char* value_string, size_t size_value_string, const char* reason, ...)
+{
+    assert(value_string);
+    assert(reason);
+
+    va_list args = NULL;
+    va_start(args, reason);
+    if (vsnprintf(value_string, size_value_string, reason, args) < 0)
+    {
+        va_end(args);
+        return true;
+    }
+    va_end(args);
+
+    assert(value_string);
+    assert(reason);
+
+    return false;
+}
+

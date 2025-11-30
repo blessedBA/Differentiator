@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "debugUtils.h"
+#include "errors.h"
 #include "safetyTreeDiff.h"
 #include "tree.h"
 
@@ -11,11 +12,17 @@
 
 static bool setValue (tree_t* tree, node_t* node, type_t type, void* value);
 static int identifyVariable (tree_t* tree, void* value);
-static char* getNameType (type_t type);
+static const char* getNameType (type_t type);
 
 operation_t operations[NUMBER_OPERATIONS] = { {NULL_OPER,   "null_value"}, {ADDITION,       "+"},
                                               {SUBTRACTION, "-"},          {MULTIPLICATION, "*"},
                                               {DIVISION,    "/"} };
+
+extern const char* str_TYPE_NULL;
+extern const char* str_OPERATION;
+extern const char* str_VARIABLE;
+extern const char* str_NUMBER;
+
 
 tree_t* treeInit ()
 {
@@ -147,7 +154,8 @@ bool setValue (tree_t* tree, node_t* node, type_t type, void* value)
             int temp = identifyVariable(tree, value);
             if (temp == BAD_VALUE)
             {
-                setError(ERR_INV_NAME_VAR);
+                LOG_ERROR(&global_error_log, ERR_INV_NAME_VAR, code_ERR_INV_NAME_VAR, "invalid name of variable in math tree");
+                ADD_CONTEXT(&global_error_log);
                 return true;
             }
             node->value.index = temp;
@@ -201,7 +209,7 @@ void nodeDestroy (tree_t* tree, node_t* node, int rank)
     node->right          = nullptr;
 
     //free(node->type.name_type);
-    if (node->type.code_type == OPERATION) free(node->value.oper.name);
+    //if (node->type.code_type == OPERATION) free(node->value.oper.name);
     free(node);
 
     return;
@@ -225,9 +233,9 @@ int identifyVariable (tree_t* tree, void* value)
     return BAD_VALUE;
 }
 
-char* getNameType (type_t type)
+const char* getNameType (type_t type)
 {
-    char* temp_type = (char*)calloc(MAX_SIZE_OF_NAME_OPERATION, sizeof(char)); //NOTE - don't forget to free memory!
+    const char* temp_type = (char*)calloc(MAX_SIZE_OF_NAME_OPERATION, sizeof(char)); //NOTE - don't forget to free memory!
 
     if (temp_type == nullptr)
     {
@@ -238,16 +246,16 @@ char* getNameType (type_t type)
     switch (type)
     {
         case TYPE_NULL:
-            temp_type = "NULL_TYPE";
+            temp_type = str_TYPE_NULL;
             break;
         case OPERATION:
-            temp_type = "OPERATION";
+            temp_type = str_OPERATION;
             break;
         case VARIABLE:
-            temp_type = "VARIABLE";
+            temp_type = str_VARIABLE;
             break;
         case NUMBER:
-            temp_type = "NUMBER";
+            temp_type = str_NUMBER;
             break;
         default:
             fprintf(stderr, COLOR_BRED "ERROR: invalid type of node in %s %s:%d\n" COLOR_RESET, __func__, __FILE__, __LINE__);

@@ -50,13 +50,15 @@ typedef enum oper_t
     ADDITION       = 1,
     SUBTRACTION    = 2,
     MULTIPLICATION = 3,
-    DIVISION       = 4
+    DIVISION       = 4,
+    SIN            = 5,
+    COS            = 6
 } oper_t;
 
 typedef struct operation_t
 {
     oper_t code;
-    char*  name;
+    const char*  name;
 } operation_t;
 
 typedef union value_t
@@ -75,7 +77,7 @@ typedef struct variable_t
 typedef struct type_node
 {
     type_t code_type = TYPE_NULL;
-    char* name_type  = "nothing_type";
+    const char* name_type  = "nothing_type";
 } type_node;
 
 typedef struct node_t

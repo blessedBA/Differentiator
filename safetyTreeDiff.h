@@ -14,11 +14,9 @@ typedef struct
     int line;
 } func_data;
 
-void setError (error_t error);
-void printErrors();
-isError_t treeVerify (const tree_t* tree, const char* file_name, const char* func_name, int line);
+bool treeVerify (const tree_t* tree, errorLog* log, const char* file_name, const char* func_name, int line);
 void treeDump (FILE* log_file_html, const tree_t* tree, const char* file_name, const char* func_name, int line,
-               int global_code_error, int count_log_files, node_t* deleted_node, const char* reason, ...);
+               node_t* deleted_node, const char* reason, ...);
 
 
 #endif // SAFETY_TREE_DIFF_H
