@@ -7,3 +7,6 @@ latexDump/latexDump.fls
 latexDump/latexDump.log
 latexDump/latexDump.synctex.gz
 commands.txt
+.DS_Store
+findSyntaxError.py
+textLogFile.txt

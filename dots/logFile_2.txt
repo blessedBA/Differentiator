@@ -4,12 +4,12 @@ digraph tree {
 	nodesep = 0.25;
 	ranksep = 0.6;
 	bgcolor = "#cfa8ceff"	node [shape = Mrecord];
-node0x606000000380 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x606000000380] | type = operation | value = * | parent = 0x0 | { left = 0x6060000003e0 | right = 0x606000000500 } }"]
-node0x6060000003e0 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x6060000003e0] | type = operation | value = * | parent = 0x606000000380 | { left = 0x606000000440 | right = 0x6060000004a0 } }"]
-node0x606000000440 [shape=Mrecord; style = filled; fillcolor = "#C0DCC0"; color = "#ffffffff";label = "{node [0x606000000440] | type = number | value = 4.0000 | parent = 0x6060000003e0 | { left = 0x0 | right = 0x0 } }"]
+node0x606000000380 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x606000000380] | type = operation | value = * (priority 3) | parent = 0x0 | { left = 0x6060000003e0 | right = 0x606000000500 } }"]
+node0x6060000003e0 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x6060000003e0] | type = operation | value = * (priority 3) | parent = 0x606000000380 | { left = 0x606000000440 | right = 0x6060000004a0 } }"]
+node0x606000000440 [shape=Mrecord; style = filled; fillcolor = "#C0DCC0"; color = "#ffffffff";label = "{node [0x606000000440] | type = number | value = 4.000000 | parent = 0x6060000003e0 | { left = 0x0 | right = 0x0 } }"]
 node0x6060000004a0 [shape=Mrecord; style = filled; fillcolor = "#39a2acff"; color = "#ffffffff";label = "{node [0x6060000004a0] | type = variable | value = 1 ('y') | parent = 0x6060000003e0 | { left = 0x0 | right = 0x0 } }"]
-node0x606000000500 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x606000000500] | type = operation | value = + | parent = 0x606000000380 | { left = 0x606000000560 | right = 0x6060000005c0 } }"]
-node0x606000000560 [shape=Mrecord; style = filled; fillcolor = "#C0DCC0"; color = "#ffffffff";label = "{node [0x606000000560] | type = number | value = 12.000 | parent = 0x606000000500 | { left = 0x0 | right = 0x0 } }"]
+node0x606000000500 [shape=Mrecord; style = filled; fillcolor = "#c95748ff"; color = "#ffffffff";label = "{node [0x606000000500] | type = operation | value = + (priority 4) | parent = 0x606000000380 | { left = 0x606000000560 | right = 0x6060000005c0 } }"]
+node0x606000000560 [shape=Mrecord; style = filled; fillcolor = "#C0DCC0"; color = "#ffffffff";label = "{node [0x606000000560] | type = number | value = 12.000000 | parent = 0x606000000500 | { left = 0x0 | right = 0x0 } }"]
 node0x6060000005c0 [shape=Mrecord; style = filled; fillcolor = "#39a2acff"; color = "#ffffffff";label = "{node [0x6060000005c0] | type = variable | value = 0 ('x') | parent = 0x606000000500 | { left = 0x0 | right = 0x0 } }"]
 node0x606000000380->node0x6060000003e0[color = "blue", dir = "both" weight = 50];
 node0x6060000003e0->node0x606000000440[color = "blue", dir = "both" weight = 50];

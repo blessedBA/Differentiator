@@ -1,0 +1,8 @@
+digraph tree {
+	rankdir = TB;
+	splines = true;
+	nodesep = 0.25;
+	ranksep = 0.6;
+	bgcolor = "#cfa8ceff"	node [shape = Mrecord];
+node0x6060000009e0 [shape=Mrecord; style = filled; fillcolor = "#39a2acff"; color = "#ffffffff";label = "{node [0x6060000009e0] | type = VARIABLE | value = 1 ('y') | parent = 0x0 | { left = 0x0 | right = 0x0 } }"]
+}
