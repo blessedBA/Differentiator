@@ -12,8 +12,6 @@ static int getRuleN(const char* math_exp, size_t* index);
 static int getRuleT(const char* math_exp, size_t* index);
 static int getRuleP(const char* math_exp, size_t* index);
 
-static void printSyntaxError(const char* math_exp, size_t* position);
-
 int getRuleG(const char* math_exp, size_t* index)
 {
     assert(math_exp);

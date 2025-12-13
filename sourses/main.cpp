@@ -10,6 +10,7 @@
 #include "simplificationMathTree.h"
 #include "safetyTreeDiff.h"
 #include "tree.h"
+#include "readMathExpForTree.h"
 
 
 #include <stdio.h>
@@ -21,6 +22,7 @@ FileStorage file_storage = {};
 FILE* global_latex_file = nullptr;
 FILE* global_log_file_html = nullptr;
 int global_count_dumps = 0;
+
 int main (const int argc, char* argv[])
 {
     
@@ -51,20 +53,19 @@ int main (const int argc, char* argv[])
         return 1;
     }
 
-    ++count_dumps;
     FILE* log_file_html = file_storage.log_file_html.pointer;
     FILE* latex_file    = file_storage.latex_file.pointer;
     global_log_file_html = log_file_html;
     global_latex_file = latex_file;
     global_count_dumps = count_dumps;
-    treeDump(log_file_html, tree, tree->root, LOC_CALL, nullptr, "DUMP %d", count_dumps);
+    treeDump(log_file_html, tree, tree->root, LOC_CALL, nullptr, "DUMP %d", ++global_count_dumps);
 
-    tree->root->type.code_type =  OPERATION;
-    tree->root->type.name_type = "OPERATION";
+    // tree->root->type.code_type =  OPERATION;
+    // tree->root->type.name_type = "OPERATION";
 
-    DEBUG_PRINT("value in root after initialization in main [%p]\n", &tree->root->value);
-    tree->root->value.oper.name = "*";
-    DEBUG_PRINT("value in root after initialization in main after initialization value as operation [%p]\n", &tree->root->value);
+    // DEBUG_PRINT("value in root after initialization in main [%p]\n", &tree->root->value);
+    // tree->root->value.oper.name = "*";
+    // DEBUG_PRINT("value in root after initialization in main after initialization value as operation [%p]\n", &tree->root->value);
 
 //     double number = 12;
 //     char*  string_addition = "+";
@@ -111,22 +112,26 @@ int main (const int argc, char* argv[])
 //
 //     startWriting(tree);
 
-    startReading(tree, &file_storage);
+    //startReading(tree, &file_storage);
+    DEBUG_PRINT("input file name = %s\n", file_storage.input_file.name);
+    readFromFile(tree, file_storage.input_file.name);
+    DEBUG_PRINT("tree->root right after function readFromFile [%p]\n", tree->root);
+    treeDump (log_file_html, tree, tree->root, LOC_CALL, nullptr, "DUMP %d", ++global_count_dumps);
+    
+    // DEBUG_PRINT(COLOR_BRED "PROCESSING TREE ENDED\n\n\n\n" COLOR_RESET);
+    // tree_t* diff_tree = startDiffTree(tree);
 
-    treeDump (log_file_html, tree, tree->root, LOC_CALL, nullptr, "DUMP %d", ++count_dumps);
+    // treeDump (log_file_html, diff_tree, diff_tree->root, LOC_CALL, nullptr, " DIFF TREE DUMP %d", ++global_count_dumps);
+    // //latexDump(latex_file, diff_tree, LOC_CALL, &count_dumps, "LaTeX DIFF DUMP %d", count_dumps + 1);
+    // printInOrder(diff_tree, diff_tree->root);
+    // printf("\n");
 
-    DEBUG_PRINT(COLOR_BRED "PROCESSING TREE ENDED\n\n\n\n" COLOR_RESET);
-    tree_t* diff_tree = startDiffTree(tree);
-
-    treeDump (log_file_html, diff_tree, diff_tree->root, LOC_CALL, nullptr, " DIFF TREE DUMP %d", ++count_dumps);
-    //latexDump(latex_file, diff_tree, LOC_CALL, &count_dumps, "LaTeX DIFF DUMP %d", count_dumps + 1);
-    printInOrder(diff_tree, diff_tree->root);
-    printf("\n");
-
-    symplifyDiffTree(diff_tree);
-    treeDump (log_file_html, diff_tree, diff_tree->root, LOC_CALL, nullptr, " DIFF TREE DUMP %d", ++count_dumps);
-    latexDump(latex_file, diff_tree, LOC_CALL, &count_dumps, "LaTeX DIFF DUMP %d", count_dumps + 1);
-
+    // symplifyDiffTree(diff_tree);
+    // DEBUG_PRINT("count_dumps");
+    // treeDump (log_file_html, diff_tree, diff_tree->root, LOC_CALL, nullptr, " DIFF TREE DUMP %d", ++global_count_dumps);
+    latexDump(latex_file, tree, LOC_CALL, &global_count_dumps, "LaTeX DIFF DUMP %d", global_count_dumps + 1);
+    // printInOrder(diff_tree, diff_tree->root);
+    
     closeFiles(&file_storage);
     freeErrorLog(&global_error_log);
     treeDestroy(tree);

@@ -51,7 +51,7 @@ tree_t* treeInit ()
 
     root->type.code_type = TYPE_NULL;
     root->type.name_type = "nothing_type";
-    root->priority       = WRONG_PR;
+    root->priority       = 0;
     root->value.index    = 0;
     root->left           = nullptr;
     root->right          = nullptr;
@@ -115,7 +115,7 @@ bool nodeInit (tree_t* tree, node_t* node, side_t side, type_t type, void* value
     return false;
 }
 
-node_t* creatNode() // for reading from file
+node_t* creatNode(type_t type, value_t value, node_t* left, node_t* right) // for reading from file
 {
     node_t* node = (node_t*)calloc(1, sizeof(node_t));
     if (node == nullptr)
@@ -125,9 +125,49 @@ node_t* creatNode() // for reading from file
         ADD_CONTEXT(&global_error_log);
         return nullptr;
     }
+
     node->parent = nullptr;
-    node->left   = nullptr;
-    node->right  = nullptr;
+    node->left   = left;
+    node->right  = right;
+    if (node->left)  node->left->parent  = node;
+    if (node->right) node->right->parent = node;
+
+    node->type.code_type = type;
+    node->type.name_type = getNameType(type);
+
+    switch (type)
+    {
+        case OPERATION:
+        { 
+            node->value.oper.code = value.oper.code;
+            node->priority        = getPriorityNode(node->value.oper.code);
+            char* name_buffer = (char*)calloc(MAX_SIZE_OF_NAME_OPERATION, sizeof(char));
+            if (!name_buffer)
+            {
+                LOG_ERROR(&global_error_log, ERR_FAIL_INIT_NAME_OPER, code_ERR_FAIL_INIT_NAME_OPER,
+                          "failed to allocate memory for name of operation in creatDiffNode");
+                ADD_CONTEXT(&global_error_log);
+                free(node);
+                return nullptr;
+            }
+
+            const char* src_name = getShortNameOperation(value.oper.code);
+            strncpy(name_buffer, src_name, MAX_SIZE_OF_NAME_OPERATION - 1);
+            name_buffer[MAX_SIZE_OF_NAME_OPERATION - 1] = '\0';
+            node->value.oper.name = name_buffer;
+            break;
+        }
+        case VARIABLE:
+            node->value.index = value.index;
+            break;
+        case NUMBER:
+            node->value.number = value.number;
+            break;
+        case TYPE_NULL:
+        default:
+            node->value.index = 0;
+            break;
+    }
 
     return node;
 }
@@ -345,6 +385,9 @@ const char* getShortNameOperation (oper_t code_operation)
 
     switch (code_operation)
     {
+        case NULL_OPER:
+            name_operation = "null_operation";
+            break;
         case ADDITION:
             name_operation = "+";
             break;
@@ -408,20 +451,23 @@ bool printInOrder (const tree_t* tree, const node_t* node)
     return false;
 }
 
-prior_t getPriorityNode (oper_t code_operation)
+int getPriorityNode (oper_t code_operation)
 {
-    prior_t priority = WRONG_PR;
+    int priority = WRONG_PR;
 
     switch (code_operation)
     {
         case MULTIPLICATION:
         case DIVISION:
-            priority = THIRD_PR;
+            priority = 3;
             break;
         case ADDITION:
         case SUBTRACTION:
-            priority = FOURTH_PR;
+            priority = 4;
             break;
+        case SIN:
+        case COS:
+            priority = 2;
         default:
             LOG_ERROR(&global_error_log, ERR_INVALID_CODE_OPER,
                       code_ERR_INVALID_CODE_OPER, "invalid code of operation node in getPriorityNode");
@@ -429,4 +475,47 @@ prior_t getPriorityNode (oper_t code_operation)
     }
 
     return priority;
+}
+
+side_t getSideOfNodeInParentNode (tree_t* tree, node_t* node)
+{
+    if (TREE_VERIFY) return WRONG_SIDE;
+    assert(node);
+
+    side_t side = WRONG_SIDE;
+
+    if (node->parent)
+    {
+        if      (node == node->parent->left)  side = LEFT;
+        else if (node == node->parent->right) side = RIGHT;
+        else
+        {
+            LOG_ERROR(&global_error_log, ERR_INVALID_CHILD_OF_NODE,
+                      code_ERR_INVALID_CHILD_OF_NODE, "invalid child of node in getSideOfNodeInParentNode (unmatched pointer)");
+            ADD_CONTEXT(&global_error_log);
+        }
+    }
+
+    if (TREE_VERIFY) return WRONG_SIDE;
+    assert(node);
+
+    return side;
+}
+
+void deleteNodeWithoutSubtree (tree_t* tree, node_t* node)
+{
+    if (TREE_VERIFY) return;
+    
+    if (!node) return;
+
+    node->parent         = nullptr;
+    node->left           = nullptr;
+    node->right          = nullptr;
+    node->priority       = 0;
+    node->type.code_type = TYPE_NULL;
+
+    //free((char*)node->type.name_type);
+    free(node);
+
+    return;
 }

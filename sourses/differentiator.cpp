@@ -101,8 +101,6 @@ node_t* getDiffNode (const tree_t* tree, tree_t* diff_tree, const node_t* node, 
 
     node_t* diff_node = nullptr;
     char curr_variable = '\0';
-    double zero = 0.0;
-    double one  = 1.0;
 
     switch (node->type.code_type)
     {
@@ -167,10 +165,6 @@ node_t* getDiffNode (const tree_t* tree, tree_t* diff_tree, const node_t* node, 
     return diff_node;
 }
 
-// void diffOperationNode (const tree_t* tree, tree_t** diff_node, node_t* node, )
-// {
-
-// }
 node_t* copySubtree (const tree_t* tree, const node_t* node)
 {
     if (!node) return nullptr;
@@ -189,16 +183,26 @@ node_t* copySubtree (const tree_t* tree, const node_t* node)
 
 node_t* creatDiffNode (type_t type, value_t value)
 {
-    node_t* node = creatNode();
-    if (!node) return nullptr;
+    node_t* node = (node_t*)calloc(1, sizeof(node_t));
+    if (node == nullptr)
+    {
+        LOG_ERROR(&global_error_log, ERR_FAIL_INIT_NODE,
+                  code_ERR_FAIL_INIT_NODE, "failed to allocate memory for node in creatNode");
+        ADD_CONTEXT(&global_error_log);
+        return nullptr;
+    }
+    
+    node->parent = nullptr;
+    node->left   = nullptr;
+    node->right  = nullptr;
 
     node->type.code_type = type;
     node->type.name_type = getNameType(type);
-
+ 
     switch (type)
     {
         case OPERATION:
-        {
+        { 
             node->value.oper.code = value.oper.code;
             node->priority        = getPriorityNode(node->value.oper.code);
             char* name_buffer = (char*)calloc(MAX_SIZE_OF_NAME_OPERATION, sizeof(char));
@@ -215,6 +219,8 @@ node_t* creatDiffNode (type_t type, value_t value)
             strncpy(name_buffer, src_name, MAX_SIZE_OF_NAME_OPERATION - 1);
             name_buffer[MAX_SIZE_OF_NAME_OPERATION - 1] = '\0';
             node->value.oper.name = name_buffer;
+
+            free(name_buffer);
             break;
         }
         case VARIABLE:
@@ -230,7 +236,6 @@ node_t* creatDiffNode (type_t type, value_t value)
     }
 
     DEBUG_PRINT("creatDiffNode: node->type.code_type = %d\n", node->type.code_type);
-
 
     assert(node);
 

@@ -29,10 +29,14 @@ typedef enum error_t
     ERR_FAIL_INIT_NAME_OPER             = 10,
     ERR_NO_MATCH_PARENT_AND_CHILD       = 11,
     ERR_DIVISION_BY_ZERO                = 12,
-    UNEXPECTED_ERROR                    = 13
+    UNEXPECTED_ERROR                    = 13,
+    ERR_INVALID_SIDE_NODE               = 14,
+    ERR_INVALID_CHILD_OF_NODE           = 15,
+    ERR_UNEXPECTED_ENUM_VALUE           = 16
+
 } error_t;
 
-typedef enum code_error_t
+typedef enum code_error_t // TODO delete this enum, it is useless
 {
     code_HAVE_NO_ERRORS                 = 0 << 0,
     code_ERR_FAIL_INIT_TREE             = 1 << 1,
@@ -47,7 +51,10 @@ typedef enum code_error_t
     code_ERR_FAIL_INIT_NAME_OPER        = 1 << 10,
     code_ERR_NO_MATCH_PARENT_AND_CHILD  = 1 << 11,
     code_ERR_DIVISION_BY_ZERO           = 1 << 12,
-    code_UNEXPECTED_ERROR               = 1 << 13
+    code_UNEXPECTED_ERROR               = 1 << 13,
+    code_ERR_INVALID_SIDE_NODE          = 1 << 14,
+    code_ERR_INVALID_CHILD_OF_NODE      = 1 << 15,
+    code_ERR_UNEXPECTED_ENUM_VALUE      = 1 << 16
 } code_error_t;
 
 typedef struct errorContext

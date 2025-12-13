@@ -10,14 +10,15 @@
 #define BAD_VALUE       -666
 #define NUMBER_OPERATIONS 5
 #define MAX_SIZE_OF_NAME_OPERATION 10
-#define MAX_SIZE_OF_GENERAL_VALUE  30
+#define MAX_SIZE_OF_GENERAL_VALUE  100
 #define MAX_LENGTH_OF_NUMBER       10
 typedef int index_t;
 
 typedef enum side_t
 {
-    LEFT  = 1,
-    RIGHT = 2
+    WRONG_SIDE = 0,
+    LEFT       = 1,
+    RIGHT      = 2
 } side_t;
 
 typedef enum mode_print
@@ -96,7 +97,7 @@ typedef struct node_t
     node_t*  left;
     node_t*  right;
     node_t*  parent;
-    prior_t  priority;
+    int      priority; // TODO приоритет можно просто числом
 } node_t;
 
 typedef struct tree_t
@@ -112,19 +113,23 @@ bool nodeInit    (tree_t* tree, node_t* node, side_t side, type_t type, void* va
 void treeDestroy (tree_t* tree);
 void nodeDestroy (tree_t* tree, node_t* node, int rank);
 
-node_t* creatNode();
+node_t* creatNode(type_t type, value_t value, node_t* left, node_t* right);
 
 void printNode          (const node_t* node, int rank, mode_print mode);
 void printNodePREorder  (const node_t* node, int rank);
 void printNodePOSTorder (const node_t* node, int rank);
 void printNodeINorder   (const node_t* node, int rank);
+bool printInOrder       (const tree_t* tree, const node_t* node);
 
 int identifyVariable (tree_t* tree, void* value);
 oper_t getCodeOperation (char* value);
+
 const char* getNameOperation (oper_t code_operation);
 const char* getShortNameOperation (oper_t code_operation);
 const char* getNameType (type_t type);
-bool printInOrder (const tree_t* tree, const node_t* node);
-prior_t getPriorityNode (oper_t code_operation);
+
+int getPriorityNode (oper_t code_operation);
+side_t getSideOfNodeInParentNode (tree_t* tree, node_t* node);
+void deleteNodeWithoutSubtree (tree_t* tree, node_t* node);
 
 #endif // TREE_H

@@ -22,7 +22,7 @@ void grow_error_log (errorLog* log)
     storageErrors* new_data = (storageErrors*)realloc(log->entries, log->capacity * sizeof(storageErrors));
     if (!new_data)
     {
-        fprintf(stderr, "FATAL: Cannot grow error log.\n");
+        fprintf(stderr, "FATAL ERROR: Cannot grow error log.\n");
         return;
     }
     log->entries = new_data;
@@ -41,8 +41,8 @@ void grow_contexts (storageErrors* errors)
     errorContext* new_context = (errorContext*)realloc(errors->contexts, errors->ctx_capacity * sizeof(errorContext));
     if (!new_context)
     {
-        fprintf(stderr, COLOR_BRED "FATAL ERROR: Cannot grow error context array.\n" COLOR_RESET);
-        exit(1);
+        fprintf(stderr, COLOR_BRED "FATAL ERROR: Cannot grow error context array. Context is not growed\n" COLOR_RESET);
+        return;
     }
     errors->contexts = new_context;
 
@@ -81,8 +81,11 @@ void setErrorLogFile (errorLog* log, FILE** log_file, const char* file_name)
         *log_file = fopen(file_name, "w");
         if (*log_file == nullptr)
         {
-            fprintf(stderr, COLOR_BRED "FATAL ERROR: failed to open text log file!\n" COLOR_RESET);
-            exit(1);
+            fprintf(stderr, COLOR_BRED "ERROR: failed to open text log file, "
+                                       "all errors will be sent in " COLOR_BYELLOW "stderr\n" COLOR_RESET);
+            *log_file = stderr;
+            log->log_filename = "stderr";
+            return;
         }
         log->log_file = *log_file;
         log->log_filename = file_name;
@@ -181,7 +184,7 @@ void addErrorContext (errorLog* log, const char* file_name, const char* func_nam
 
     return;
 }
-// ...existing code...
+
 void printErrors (const errorLog* log)
 {
     assert(log);

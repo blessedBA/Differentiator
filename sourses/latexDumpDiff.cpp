@@ -184,11 +184,6 @@ void printNodeToLatex (FILE* latex_file, const tree_t* tree, node_t* node)
                     // TODO add processing error when there is no right
                     fprintf(latex_file, "}");
                 }
-                // if ((node->value.oper.code         == DIVISION || node->value.oper.code         == MULTIPLICATION) &&
-                //     (node->right->value.oper.code  == ADDITION || node->right->value.oper.code  == SUBTRACTION)       )
-                // {
-                //     fprintf(latex_file, "(");
-                // }
                 fprintf(latex_file, "%s", node->value.oper.name);
             }
 
@@ -212,13 +207,13 @@ void setPriority(FILE* latex_file, node_t* node, mode_bracket mode)
 
     if (!node->parent || !node->parent->parent) return;
 
-    prior_t parent_priority = node->parent->parent->priority;
-    prior_t curr_priority   = node->parent->priority;
+    int parent_priority = node->parent->parent->priority;
+    int curr_priority   = node->parent->priority;
 
     if (curr_priority > parent_priority)
     {
-        if      (node == node->parent->left && mode == BEFORE)  fprintf(latex_file, "(");
-        else if (node == node->parent->right && mode == AFTER) fprintf(latex_file, ")");
+        if      (node == node->parent->left && mode  == BEFORE)  fprintf(latex_file, "(");
+        else if (node == node->parent->right && mode == AFTER)   fprintf(latex_file, ")");
     }
 
     assert(latex_file);

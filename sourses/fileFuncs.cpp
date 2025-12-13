@@ -257,7 +257,7 @@ char* creatBuffer (const char* filename)
     }
 
     assert(filename);
-
+    fclose(input_file);
     return buffer;
 }
 
@@ -274,7 +274,7 @@ node_t* readTreeFromFile(tree_t* tree, char* buffer, size_t* position, size_t* s
         DEBUG_PRINT("if ACTIVATED\n");
         (*size)++;
         (*position)++;
-        node = creatNode();
+        node = creatNode(NUMBER, value_t {.number = 0.0}, nullptr, nullptr);
         if (node == nullptr) return nullptr;
         node->parent = parent_node;
     }

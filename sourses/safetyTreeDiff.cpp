@@ -20,7 +20,7 @@
 static void printStartDump    (FILE* log_file_html, func_data* f_data);
 static void printMainInfoTree (FILE* log_file_html, const tree_t* tree);
 static void printImage        (FILE* log_file_html);
-static void printErrorsInLog  (FILE* log_file_html, int global_code_error);
+//static void printErrorsInLog  (FILE* log_file_html, int global_code_error);
 
 static int count_log_files = 0;
 extern FileStorage file_storage;
@@ -35,22 +35,15 @@ bool treeVerify (const tree_t* tree, errorLog* log, const char* file_name, const
         LOG_ERROR(&global_error_log, ERR_FAIL_INIT_TREE, code_ERR_FAIL_INIT_TREE, "fail to init tree");
         ADD_CONTEXT(&global_error_log);
         isError = true;
-        //treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, nullptr, "ERROR %d", ++count_log_files);
+        treeDump(file_storage.log_file_html.pointer, tree, tree->root, file_name, func_name, line, nullptr, "ERROR %d", ++count_log_files);
         return true;
     }
-    if (tree->size < 0)
-    {
-        //treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, nullptr, "ERROR %d", ++count_log_files);
-        return true;
-    }
+    if (tree->size < 0) isError = true;
+    if (log->size  > 0) isError = true;
+    
+    if (isError) treeDump(file_storage.log_file_html.pointer, tree, tree->root, file_name, func_name, line, nullptr, "ERROR %d", ++count_log_files);
 
-    if (log->size > 0)
-    {
-        //treeDump(file_storage.log_file_html.pointer, tree, file_name, func_name, line, nullptr, "ERROR %d", ++count_log_files);
-        return true;
-    }
-
-    return false;
+    return (isError) ? true : false;
 }
 
 #else

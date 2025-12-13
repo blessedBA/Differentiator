@@ -192,21 +192,21 @@ bool creatValue (const tree_t* tree, node_t* node, char* value_string)
 {
     assert(node);
     assert(value_string);
-
+    
     switch (node->type.code_type)
     {
         case TYPE_NULL:
-            if (fillValueString(value_string, sizeof("value = %s"), "null_value")) return true;
+            if (fillValueString(value_string, MAX_SIZE_OF_GENERAL_VALUE, "null_value")) return true;
             break;
         case OPERATION:
-            if (fillValueString(value_string, sizeof("value = %s"), "value = %s (priority %d)",
+            if (fillValueString(value_string, MAX_SIZE_OF_GENERAL_VALUE, "value = %s (priority %d)",
                 node->value.oper.name, node->priority)) return true;
             break;
         case VARIABLE:
-            if (fillValueString(value_string, sizeof("value = %d ('%c')"), "value = %d ('%c')", node->value.index, tree->variables[node->value.index].name)) return true;
+            if (fillValueString(value_string, MAX_SIZE_OF_GENERAL_VALUE, "value = %d ('%c')", node->value.index, tree->variables[node->value.index].name)) return true;
             break;
         case NUMBER:
-            if (fillValueString(value_string, sizeof("value = %lf   "), "value = %lf", node->value.number)) return true; // TODO limit length of number, how to rework?
+            if (fillValueString(value_string, MAX_SIZE_OF_GENERAL_VALUE, "value = %lf", node->value.number)) return true;
             break;
         default:
             fprintf(stderr, COLOR_BRED "FATAL ERROR: invalid type of node in %s/%s:%d\n" COLOR_RESET, __func__, __FILE__, __LINE__);
@@ -226,7 +226,7 @@ bool fillValueString (char* value_string, size_t size_value_string, const char* 
 
     va_list args = {};
     va_start(args, reason);
-    size_value_string += strlen(reason); // to be sure that there is enough space
+    size_value_string += strlen(reason);
     if (vsnprintf(value_string, size_value_string, reason, args) < 0)
     {
         va_end(args);
